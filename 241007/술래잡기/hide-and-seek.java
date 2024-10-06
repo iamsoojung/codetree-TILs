@@ -17,11 +17,11 @@ public class Main {
 	
 	static int N, M, H, K;
 	static boolean[][] map;		// 나무 있으면 T
-	static boolean[][][] thieves;	// 도둑(x, y, d) 배열
-	static int policeX, policeY, policeD = 0;	// 술래(x, y, d)
+	static int[][][] thieves;	// 도둑(x, y, d) 배열
+	static int policeX = 0, policeY = 0, policeD = 0;	// 술래(x, y, d)
 	static boolean[][] isVisited;
 	static boolean isReverse = false;	// 회전필요여부
-	static int turn, score = 0;
+	static int turn = 0, score = 0;
 
 	static int[] dx = {-1, 0, 1, 0};	// 시계방향
 	static int[] dy = {0, 1, 0, -1};
@@ -38,7 +38,7 @@ public class Main {
 		K = Integer.parseInt(st.nextToken());	// k번의 턴
 		
 		map = new boolean[N][N];
-		thieves = new boolean[N][N][4];
+		thieves = new int[N][N][4];
 		
 		policeX = N/2;	// 술래는 정중앙
 		policeY = N/2;
@@ -48,10 +48,10 @@ public class Main {
 		
 		for (int i=0; i<M; i++) {
 			st = new StringTokenizer(br.readLine());
-			int x = Integer.parseInt(st.nextToken())-1;
-			int y = Integer.parseInt(st.nextToken())-1;
+			int x = Integer.parseInt(st.nextToken()) - 1;
+			int y = Integer.parseInt(st.nextToken()) - 1;
 			int d = Integer.parseInt(st.nextToken());
-			thieves[x][y][d] = true;
+			thieves[x][y][d] += 1;
 		}
 		
 		for (int i=0; i<H; i++) {
@@ -78,19 +78,19 @@ public class Main {
 	}
 	
 	static void moveThieves() {
-		boolean[][][] copyMap = new boolean[N][N][4];
+		int[][][] copyMap = new int[N][N][4];
 		
 		for (int x=0; x<N; x++) {
 			for (int y=0; y<N; y++) {
 				// 술래와의 거리 3 이하 아니면 그대로 냅둠
 				if (Math.abs(x - policeX) + Math.abs(y - policeY) > 3) {
-					copyMap[x][y][0] = true;
-					copyMap[x][y][1] = true;
-					copyMap[x][y][2] = true;
-					copyMap[x][y][3] = true;					
+					copyMap[x][y][0] += thieves[x][y][0];
+					copyMap[x][y][1] += thieves[x][y][1];
+					copyMap[x][y][2] += thieves[x][y][2];
+					copyMap[x][y][3] += thieves[x][y][3];
 				} else {
 					for (int d=0; d<4; d++) {
-						if (thieves[x][y][d] == false)	continue;	// 도망자 없으면 패스
+						if (thieves[x][y][d] == 0)	continue;	// 도망자 없으면 패스
 
 						int nd = d;
 						int nx = x + dx[nd];		// 다음 위치
@@ -103,9 +103,9 @@ public class Main {
 						}
 						
 						if (nx == policeX && ny == policeY) {	// 다음 위치 경찰이면 못 움직임
-							copyMap[x][y][nd] = true;
+							copyMap[x][y][nd] += thieves[x][y][d];
 						} else {
-							copyMap[nx][ny][nd] = true;
+							copyMap[nx][ny][nd] += thieves[x][y][d];
 						}
 					}
 				}
@@ -153,8 +153,8 @@ public class Main {
 			if (map[nx][ny])	continue;	// 나무 있으면 넘김
 			
 			for (int d=0; d<4; d++) {
-				if(thieves[nx][ny][d])	cnt++;
-				thieves[nx][ny][d] = false;
+				cnt += thieves[nx][ny][d];
+				thieves[nx][ny][d] = 0;
 			}
 		}
 		
